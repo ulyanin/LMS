@@ -84,7 +84,7 @@ class LoginHandler(UserHandler):
     def get(self):
         self.write({
             'status': 'err',
-            'msg': 'need to login'
+            'msg': 'user POST to login'
         })
         self.finish()
 
