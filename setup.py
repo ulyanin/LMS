@@ -6,10 +6,10 @@ setup(
     name='lms',
     version='0.0',
     packages=find_packages(),
-    url='https://github.com/litdarya/LMS',
+    url='https://github.com/ulyanin/LMS',
     license='MIT',
-    author='litdarya',
-    author_email="litv.daria@gmail.com",
+    author='ulyanin',
+    author_email="ulyanin1997@gmail.com",
     description='',
     setup_requires=[
         "pytest-runner",
