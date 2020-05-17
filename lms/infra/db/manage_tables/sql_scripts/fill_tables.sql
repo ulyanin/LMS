@@ -72,8 +72,44 @@ VALUES (1, 6);
 INSERT INTO course_to_professor (course_id, professor_id)
 VALUES (1, 7);
 INSERT INTO course_to_professor (course_id, professor_id)
-VALUES (2, 7);
+VALUES (3, 7);
 INSERT INTO course_to_professor (course_id, professor_id)
 VALUES (2, 8);
 INSERT INTO course_to_professor (course_id, professor_id)
 VALUES (3, 8);
+
+INSERT INTO course_to_editor (course_id, student_id)
+VALUES (1, 4);
+INSERT INTO course_to_editor (course_id, student_id)
+VALUES (2, 3);
+INSERT INTO course_to_editor (course_id, student_id)
+VALUES (3, 5);
+
+INSERT INTO course_material (course_id, name, description)
+VALUES (1, 'CV_seminar1', 'jupiter_notebook from seminar1');
+INSERT INTO course_material (course_id, name, description)
+VALUES (1, 'CV_seminar2', 'jupiter_notebook from seminar2');
+INSERT INTO course_material (course_id, name, description)
+VALUES (2, 'ALGO_lect1', 'ALGO lecture 1');
+INSERT INTO course_material (course_id, name, description)
+VALUES (3, 'ARCH_lecture2', 'ARCH lecture 2');
+
+INSERT INTO assignee_task (course_id, name, start_time, end_time, description)
+VALUES (1, 'cv_task1', '2020-01-01', '2020-07-01', 'CV task1');
+INSERT INTO assignee_task (course_id, name, start_time, end_time, description)
+VALUES (2, 'algo_task1', '2020-01-01', '2020-04-01', 'ALGO task1');
+INSERT INTO assignee_task (course_id, name, start_time, end_time, description)
+VALUES (3, 'arch_task1', '2020-07-01', '2020-10-01', 'ARCH task1');
+
+INSERT INTO assignee_submit (assignee_name, student_id, solution)
+VALUES ('cv_task1', 1, 'cv_task1_solution_user1');
+INSERT INTO assignee_submit (assignee_name, student_id, solution, submit_time)
+VALUES ('cv_task1', 2, 'cv_task1_solution_user2', '2020-05-15');
+
+INSERT INTO assignee_submit (assignee_name, student_id, solution, submit_time)
+VALUES ('cv_task1', 2, 'cv_task1_solution_user2', '2020-05-18')
+ON CONFLICT (assignee_name, student_id) DO UPDATE
+SET (solution, submit_time)  = (excluded.solution, excluded.submit_time);
+
+INSERT INTO assignee_submit (assignee_name, student_id, solution, submit_time)
+VALUES ('algo_task1', 2, 'algo_task1_solution_user3', '2020-03-01');

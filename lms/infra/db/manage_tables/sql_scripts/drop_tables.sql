@@ -1,3 +1,7 @@
+DROP TABLE IF EXISTS assignee_submit;
+
+DROP TABLE IF EXISTS assignee_task;
+
 DROP TABLE IF EXISTS course_to_professor;
 
 DROP TABLE IF EXISTS course_to_editor;

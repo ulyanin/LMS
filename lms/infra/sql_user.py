@@ -72,8 +72,10 @@ class SqlUser(User, metaclass=ABCMeta):
         if user_record is None:
             return None
         user = {}
+        allowed_properties = self.properties()
         for param in properties:
-            user[param] = user_record.get(param, None)
+            if param in allowed_properties:
+                user[param] = user_record.get(param, None)
         return user
 
     async def update_info(

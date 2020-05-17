@@ -1,6 +1,7 @@
 from typing import List, Tuple
 from tornado.web import RequestHandler
 from lms.infra.sql_user_factory import SqlUserFactory
+from lms.infra.sql_course import SqlCourse
 from lms.settings import COOKIE_SECRET
 
 from lms.web.handlers import (
@@ -12,6 +13,7 @@ from lms.web.handlers import (
     UserInfoHandler,
     UserClassmatesHandler,
     UserCoursesHandler,
+    CourseInfoHandler,
 )
 
 PING_URL = (r'/ping?', PingHandler)
@@ -22,6 +24,7 @@ URLS = [
     (r'/user/info/?', UserInfoHandler, dict(user_factory=SqlUserFactory)),
     (r'/user/classmates/?', UserClassmatesHandler, dict(user_factory=SqlUserFactory)),
     (r'/user/courses/?', UserCoursesHandler, dict(user_factory=SqlUserFactory)),
+    (r'/course/info/?', CourseInfoHandler, dict(user_factory=SqlUserFactory, course_class=SqlCourse)),
     (r"(.*)", NotFoundHandler),
 ]
 LOGIN_URL = [

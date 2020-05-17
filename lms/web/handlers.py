@@ -109,13 +109,12 @@ class LoginHandler(UserHandler):
                 'msg': 'successfully logged in, set cookies in header',
             })
         else:
-            self._bad_request(status=401, msg='incorrect email or password')
+            self._bad_request(status=401, msg='incorrect email or password or user has not been registered')
 
 
 class RegisterHandler(UserHandler):
     def initialize(self, user_factory):
         super().initialize(user_factory=user_factory)
-        self.body = json.loads(self.request.body)
         self.verification_code = self.body.get('verification_code')
         self.email = self.body.get('email')
         self.password = self.body.get('password')
@@ -222,6 +221,7 @@ class UserClassmatesHandler(AuthUserHandler):
         await super().prepare()
         if await self.user.is_professor:
             self._bad_request(status=405, msg='method classmates is not allowed for professor')
+            return
         self.classmates = await self.user.classmates()
 
     async def get(self):
@@ -268,3 +268,29 @@ class EditUserInfoHandler(AuthUserHandler):
                 self._bad_request(
                     msg=f'unexpected field {param} does not exist or cannot be updated'
                 )
+
+
+class BaseCourseHandler(AuthUserHandler):
+    def initialize(self, user_factory, course_class):
+        super().initialize(user_factory)
+        course_id = self.get_argument('course_id', default=None)
+        if course_id:
+            course_id = int(course_id)
+        self.course = course_class(course_id=course_id)
+
+    async def prepare(self):
+        await super().prepare()
+        if not self.course:
+            self._bad_request(
+                msg='expected course_id GET parameter'
+            )
+            return
+
+
+class CourseInfoHandler(BaseCourseHandler):
+    async def get(self):
+        info = await self.course.get_info()
+        self.write({
+            'status': 'ok',
+            'info': info,
+        })

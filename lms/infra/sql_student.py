@@ -3,7 +3,7 @@ from typing import Iterable, List, Optional
 from lms.domain.course import Course
 from lms.domain.student import Student
 from lms.domain.user import User
-from lms.infra.sql_course import SqlCourse
+import lms.infra.sql_course as sql_course
 from lms.infra.sql_user import SqlUser
 import lms.infra.db.postgres_executor as pe
 
@@ -90,5 +90,5 @@ class SqlStudent(SqlUser, Student):
         )
         if records is None:
             return []
-        courses = [SqlCourse(course_id=record.get('course_id')) for record in records]
+        courses = [sql_course.SqlCourse(course_id=record.get('course_id')) for record in records]
         return courses

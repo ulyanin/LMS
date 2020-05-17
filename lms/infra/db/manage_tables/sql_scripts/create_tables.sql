@@ -54,8 +54,8 @@ CREATE TABLE course(
 
 CREATE TABLE course_material (
     course_id integer REFERENCES course (course_id) NOT NULL,
-    PRIMARY KEY (course_id),
     name VARCHAR (50) NOT NULL,
+    PRIMARY KEY (name),
     description TEXT,
     add_time DATE NOT NULL DEFAULT CURRENT_DATE
 );
@@ -68,8 +68,8 @@ CREATE TABLE course_to_professor (
 
 CREATE TABLE course_to_editor (
     course_id integer REFERENCES course (course_id) NOT NULL,
-    user_id integer REFERENCES users (user_id),
-    PRIMARY KEY (course_id, user_id)
+    student_id integer REFERENCES student (user_id),
+    PRIMARY KEY (course_id, student_id)
 );
 
 CREATE TABLE group_to_course (
@@ -78,9 +78,49 @@ CREATE TABLE group_to_course (
     PRIMARY KEY (group_name, course_id)
 );
 
-CREATE TABLE assignee (
+CREATE TABLE assignee_task (
     course_id integer REFERENCES course (course_id) NOT NULL,
-    start_time DATE NOT NULL,
-    end_time DATE NOT NULL,
+    name VARCHAR (50) NOT NULL,
+    PRIMARY KEY (name),
+    start_time timestamp NOT NULL,
+    end_time timestamp NOT NULL,
     description TEXT
 );
+
+
+CREATE TABLE assignee_submit (
+    assignee_name varchar (50) REFERENCES assignee_task (name) NOT NULL,
+    student_id integer REFERENCES users (user_id) NOT NULL,
+    PRIMARY KEY (assignee_name, student_id),
+    submit_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    solution TEXT
+);
+
+create or replace function f_assignee_submit_time_valid(assignee_name varchar(50), submit_time timestamp) returns bool as
+$func$
+select EXISTS (
+        select 1 from assignee_task
+        where assignee_name = assignee_task.name
+        and assignee_task.start_time <= submit_time
+        and submit_time <= assignee_task.end_time);
+$func$ language sql stable;
+
+ALTER TABLE assignee_submit ADD CONSTRAINT check_submit_time
+CHECK (f_assignee_submit_time_valid(assignee_name, submit_time));
+
+
+create or replace function f_assignee_submit_user_valid(assignee_name varchar(50), student_id integer) returns bool as
+$func$
+select EXISTS (
+    select 1
+    from assignee_task
+    JOIN course ON assignee_task.course_id = course.course_id
+    JOIN group_to_course gtc on course.course_id = gtc.course_id
+    JOIN student_group sg on gtc.group_name = sg.group_name
+    JOIN student on sg.group_name = student.group_name
+    WHERE student.user_id = student_id AND assignee_task.name = assignee_name);
+$func$ language sql stable;
+
+
+ALTER TABLE assignee_submit ADD CONSTRAINT check_assignee_user_id
+CHECK (f_assignee_submit_user_valid(assignee_name, student_id));

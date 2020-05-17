@@ -34,6 +34,10 @@ class User(metaclass=ABCMeta):
         'linkedin_link',
     )
 
+    def __init__(self, *, user_id, authenticated=False):
+        self.user_id = user_id
+        self.authenticated = authenticated
+
     def properties(self):
         return self.USER_PROPERTIES
 
@@ -43,10 +47,6 @@ class User(metaclass=ABCMeta):
     @staticmethod
     def hidden_properties():
         return tuple()
-
-    def __init__(self, *, user_id, authenticated=False):
-        self.user_id = user_id
-        self.authenticated = authenticated
 
     @abstractmethod
     async def get_info(
