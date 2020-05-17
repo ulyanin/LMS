@@ -6,6 +6,6 @@ install:
 script:
   - python3 setup.py test
 env:
-  - CODECOV_TOKEN=0a7527a6-e25b-4081-bbd1-f08dcb16fb6c
+  - CODECOV_TOKEN=deeb6079-a04f-4861-8103-08542caf8e7f
 after_success:
   - codecov
