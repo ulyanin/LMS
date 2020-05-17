@@ -3,7 +3,7 @@
 
 # LMS
 
-Домашнее задание по требованиям https://gist.github.com/Invizory/9cd7e149bb476324faa1f665a9f8170d
+Требования: [TZ.md](TZ.md)
 
 ## Первый запуск
 
