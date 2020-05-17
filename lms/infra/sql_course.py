@@ -2,6 +2,7 @@ from typing import Dict, Optional, Iterable, Any, List
 
 from lms.domain.course import Course
 from lms.domain.course_material import CourseMaterial
+from lms.domain.assignee_task import AssigneeTask
 from lms.domain.professor import Professor
 from lms.domain.student import Student
 
@@ -42,7 +43,45 @@ class SqlCourse(Course):
         return editors
 
     async def get_materials(self) -> List[CourseMaterial]:
-        return []
+        query = '''SELECT name, course_id, description, add_time
+            FROM course_material WHERE course_id = $1'''
+        records = await pe.fetch(
+            query=query,
+            params=(self.course_id,)
+        )
+        if not records:
+            return []
+        materials = []
+        for record in records:
+            material = CourseMaterial(
+                name=record.get('name'),
+                course_id=record.get('course_id'),
+                description=record.get('description'),
+                add_time=record.get('add_time'),
+            )
+            materials.append(material)
+        return materials
+
+    async def get_assignees(self) -> List[AssigneeTask]:
+        query = '''SELECT name, course_id, start_time, end_time, description
+            FROM assignee_task WHERE course_id = $1'''
+        records = await pe.fetch(
+            query=query,
+            params=(self.course_id,)
+        )
+        if not records:
+            return []
+        assignees = []
+        for record in records:
+            assignee = AssigneeTask(
+                name=record.get('name'),
+                course_id=record.get('course_id'),
+                description=record.get('description'),
+                start_time=record.get('start_time'),
+                end_time=record.get('end_time'),
+            )
+            assignees.append(assignee)
+        return assignees
 
     async def get_info(
             self,

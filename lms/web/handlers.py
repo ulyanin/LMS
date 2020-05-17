@@ -109,7 +109,10 @@ class LoginHandler(UserHandler):
                 'msg': 'successfully logged in, set cookies in header',
             })
         else:
-            self._bad_request(status=401, msg='incorrect email or password or user has not been registered')
+            self._bad_request(
+                status=401,
+                msg='incorrect email or password or user has not been registered'
+            )
 
 
 class RegisterHandler(UserHandler):
@@ -290,6 +293,11 @@ class BaseCourseHandler(AuthUserHandler):
 class CourseInfoHandler(BaseCourseHandler):
     async def get(self):
         info = await self.course.get_info()
+        if not info:
+            self._bad_request(
+                msg=f'course_id = {self.course.course_id} not found in courses'
+            )
+            return
         self.write({
             'status': 'ok',
             'info': info,

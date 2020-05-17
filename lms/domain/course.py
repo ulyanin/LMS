@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Dict, Iterable, List, Optional, Any
 
 from lms.domain.course_material import CourseMaterial
+from lms.domain.assignee_task import AssigneeTask
 from lms.domain.professor import Professor
 from lms.domain.student import Student
 
@@ -38,28 +39,37 @@ class Course(metaclass=ABCMeta):
     async def get_materials(self) -> List[CourseMaterial]:
         pass
 
-    @staticmethod
-    async def get_assignees():
+    @abstractmethod
+    async def get_assignees(self) -> List[AssigneeTask]:
         return []
 
-    async def _apply_getinfo(self, items: List[Any]):
+    async def _apply_getinfo(self, items: List[Any], properties=None):
+        # ['user_id', 'name', 'email', 'group_name', 'description']
         return [
-            await item.get_info(properties=['user_id', 'name', 'email', 'group_name'])
+            await item.get_info(properties=properties)
             for item in items
         ]
 
     async def get_additional_info(self, properties: List[str]) -> Dict[str, Any]:
         info = {}
         if 'professors' in properties:
-            info['professors'] = await self.get_professors()
+            info['professors'] = await self._apply_getinfo(
+                items=await self.get_professors(),
+                properties=['user_id', 'name', 'email'],
+            )
         if 'editors' in properties:
-            info['editors'] = await self.get_editors()
+            info['editors'] = await self._apply_getinfo(
+                items=await self.get_editors(),
+                properties=['user_id', 'name', 'email'],
+            )
         if 'materials' in properties:
-            info['materials'] = await self.get_materials()
+            info['materials'] = await self._apply_getinfo(
+                items=await self.get_materials()
+            )
         if 'assignees' in properties:
-            info['assignees'] = await self.get_assignees()
-        for key in info:
-            info[key] = await self._apply_getinfo(info[key])
+            info['assignees'] = await self._apply_getinfo(
+                items=await self.get_assignees()
+            )
         return info
 
     @abstractmethod

@@ -24,7 +24,11 @@ URLS = [
     (r'/user/info/?', UserInfoHandler, dict(user_factory=SqlUserFactory)),
     (r'/user/classmates/?', UserClassmatesHandler, dict(user_factory=SqlUserFactory)),
     (r'/user/courses/?', UserCoursesHandler, dict(user_factory=SqlUserFactory)),
-    (r'/course/info/?', CourseInfoHandler, dict(user_factory=SqlUserFactory, course_class=SqlCourse)),
+    (
+        r'/course/info/?',
+        CourseInfoHandler,
+        dict(user_factory=SqlUserFactory, course_class=SqlCourse)
+    ),
     (r"(.*)", NotFoundHandler),
 ]
 LOGIN_URL = [
