@@ -49,10 +49,10 @@ class UserHandler(BaseHandler):
         if self.request.body:
             try:
                 self.body = tornado.escape.json_decode(self.request.body)
-            except json.decoder.JSONDecodeError as e:
-                self.msg = f'could not parse body:\n{str(e)}'
+            except json.decoder.JSONDecodeError as exception:
+                self.msg = f'could not parse body:\n{str(exception)}'
 
-    async def prepare(self):
+    async def prepare(self):  # pylint: disable=invalid-overridden-method
         if self.msg:
             self._bad_request(
                 status=400,

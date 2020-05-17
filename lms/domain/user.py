@@ -1,3 +1,5 @@
+# pylint: disable=too-few-public-methods
+
 from abc import ABCMeta, abstractmethod
 from typing import Dict, Iterable, List, Optional
 
