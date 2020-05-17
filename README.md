@@ -155,6 +155,7 @@ curl "localhost:8000/user/courses/"  -H 'Cookie: ...' -s | jq .
 > далее собираем в venv:
 >
 > `pip install -r requirements.txt`
+>
 > `python3 setup.py install`
 >
 > Теперь можно запускать так:
@@ -169,6 +170,15 @@ curl "localhost:8000/user/courses/"  -H 'Cookie: ...' -s | jq .
 docker-compose up
 ```
 
-Чтобы создать/заполнить базы, используем `lms/infra/db/*.sql`
+Подключиться к DB:
+```(bash)
+psql -h localhost  -U admin -d lms_db
+```
+
+Чтобы создать/заполнить базы:
+```(bash)
+python lms/infra/db/manage_tables/execute_script.py --script lms/infra/db/manage_tables/sql_scripts/create_tables.sql
+python lms/infra/db/manage_tables/execute_script.py --script lms/infra/db/manage_tables/sql_scripts/fill_tables.sql
+```
 
 Готово
