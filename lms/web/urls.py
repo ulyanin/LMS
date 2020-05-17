@@ -9,6 +9,7 @@ from lms.web.handlers import (
     NotFoundHandler,
     LoginHandler,
     RegisterHandler,
+    ChangePasswordHandler,
     GetUserIdHandler,
     UserInfoHandler,
     UserClassmatesHandler,
@@ -20,6 +21,7 @@ PING_URL = (r'/ping?', PingHandler)
 URLS = [
     (r'/login/?', LoginHandler, dict(user_factory=SqlUserFactory)),
     (r'/register/?', RegisterHandler, dict(user_factory=SqlUserFactory)),
+    (r'/user/change_password', ChangePasswordHandler, dict(user_factory=SqlUserFactory)),
     (r'/user/id/?', GetUserIdHandler, dict(user_factory=SqlUserFactory)),
     (r'/user/info/?', UserInfoHandler, dict(user_factory=SqlUserFactory)),
     (r'/user/classmates/?', UserClassmatesHandler, dict(user_factory=SqlUserFactory)),

@@ -21,6 +21,25 @@ class SqlUser(User, metaclass=ABCMeta):
         return resolved_user_id
 
     @staticmethod
+    async def update_email_password(
+            *,
+            user_id,
+            email,
+            password: str,
+    ) -> bool:
+        query = """
+        UPDATE users
+        SET (email, hashed_password) = ROW($2, crypt($3, gen_salt('bf')))
+        WHERE user_id=$1
+        RETURNING user_id
+        """
+        returned_user_id = await pe.fetch_val(
+            query=query,
+            params=(user_id, email, password)
+        )
+        return returned_user_id is not None
+
+    @staticmethod
     async def register(*, verification_code: str, email: str, password: str) -> Tuple[bool, str]:
         query = "SELECT user_id, hashed_password FROM users WHERE verification_code = $1"
         user_record = await pe.fetch_row(
@@ -33,17 +52,13 @@ class SqlUser(User, metaclass=ABCMeta):
             return False, 'invalid verification code'
         if maybe_password:
             return False, 'already registered'
-        query = """
-        UPDATE users
-        SET (email, hashed_password) = ROW($2, crypt($3, gen_salt('bf')))
-        WHERE user_id=$1
-        RETURNING user_id
-        """
-        user_id = await pe.fetch_val(
-            query=query,
-            params=(resolved_user_id, email, password)
+        print('register', resolved_user_id, email, password)
+        result = await SqlUser.update_email_password(
+            user_id=resolved_user_id,
+            email=email,
+            password=password
         )
-        assert user_id
+        assert result
         return True, 'successfully registered'
 
     @staticmethod

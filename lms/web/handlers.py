@@ -96,7 +96,7 @@ class LoginHandler(UserHandler):
     def get(self):
         self.write({
             'status': 'err',
-            'msg': 'user POST to login'
+            'msg': 'use POST to login'
         })
         self.finish()
 
@@ -113,6 +113,48 @@ class LoginHandler(UserHandler):
                 status=401,
                 msg='incorrect email or password or user has not been registered'
             )
+
+
+class ChangePasswordHandler(UserHandler):
+    def initialize(self, user_factory):
+        super().initialize(user_factory=user_factory)
+        self.email = self.body.get('email')
+        self.password = self.body.get('password')
+        self.new_password = self.body.get('new_password')
+
+    def get(self):
+        self.write({
+            'status': 'err',
+            'msg': 'use POST'
+        })
+        self.finish()
+
+    async def post(self):
+        user_id = await self.user_factory.login_user(email=self.email, password=self.password)
+        if not user_id:
+            self._bad_request(
+                status=401,
+                msg='incorrect email or password or user has not been registered'
+            )
+            return
+        user = await self.user_factory.get_student_or_professor(user_id=user_id, authenticated=True)
+        update_result = await user.update_email_password(
+            user_id=user_id,
+            password=self.new_password,
+            email=self.email
+        )
+        if update_result:
+            self.write({
+                'status': 'ok',
+                'updated': True,
+                'msg': f'successfully changed password for user_id = {user_id}',
+            })
+        else:
+            self.write({
+                'status': 'err',
+                'updated': False,
+                'msg': update_result.msg,
+            })
 
 
 class RegisterHandler(UserHandler):

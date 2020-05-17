@@ -72,3 +72,13 @@ class User(metaclass=ABCMeta):
             update: Dict
     ) -> UpdateResult:
         pass
+
+    @staticmethod
+    @abstractmethod
+    async def update_email_password(
+            *,
+            user_id,
+            email,
+            password: str,
+    ) -> bool:
+        pass
