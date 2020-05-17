@@ -5,6 +5,7 @@
 import json
 from typing import Optional, Any
 
+import tornado.escape
 import tornado.web
 
 from tornado.web import (
@@ -44,8 +45,19 @@ class UserHandler(BaseHandler):
     def initialize(self, user_factory):
         self.user_factory = user_factory
         self.body = dict()
+        self.msg = None
         if self.request.body:
-            self.body = json.loads(self.request.body)
+            try:
+                self.body = tornado.escape.json_decode(self.request.body)
+            except json.decoder.JSONDecodeError as e:
+                self.msg = f'could not parse body:\n{str(e)}'
+
+    async def prepare(self):
+        if self.msg:
+            self._bad_request(
+                status=400,
+                msg=self.msg,
+            )
 
     def get_current_user(self) -> Optional[bytes]:
         return self.get_secure_cookie('user_id')
@@ -128,6 +140,7 @@ class AuthUserHandler(UserHandler):
         super().initialize(user_factory=user_factory)
 
     async def prepare(self):
+        await super().prepare()
         self.user_id = self.get_current_user_id()
         if self.user_id is None:
             raise tornado.web.HTTPError(403)
@@ -148,17 +161,27 @@ class UserInfoHandler(UserHandler):
             self.authenticated &= self.user_id == self.get_current_user_id()
 
     async def prepare(self):
+        await super().prepare()
         if self.user_id is not None:
             self.user = await self.user_factory.get_student_or_professor(
                 user_id=self.user_id,
                 authenticated=self.authenticated
             )
 
+    def _doesnt_exist(self):
+        self._bad_request(
+            status=400,
+            msg=f"user_id {self.user_id} does not exist"
+        )
+
     async def get(self):
         if not self.user_id:
-            self._bad_request(msg='expected user_id within GET argument')
+            self._bad_request(msg='expected authentication or user_id within GET argument')
             assert False
         info = await self.user.get_info()
+        if not info:
+            self._doesnt_exist()
+            return
         self.write({
             'status': 'ok',
             'info': info,
@@ -166,9 +189,19 @@ class UserInfoHandler(UserHandler):
 
     @authenticated
     async def post(self):
+        if self.user_id != self.get_current_user_id():
+            self._bad_request(
+                msg='could not perform update for other user, please verify user_id GET argument'
+            )
+            return
         to_update = self.body.get('update')
-        updated = await self.user.update_info(update=to_update)
-        if updated:
+        if to_update is None:
+            self._bad_request(
+                msg='expected "update" property in body; POST request is used to modify user_info'
+            )
+            return
+        update_result = await self.user.update_info(update=to_update)
+        if update_result.success:
             self.write({
                 'status': 'ok',
                 'updated': True,
@@ -178,6 +211,7 @@ class UserInfoHandler(UserHandler):
             self.write({
                 'status': 'err',
                 'updated': False,
+                'msg': update_result.msg,
             })
 
 

@@ -2,6 +2,12 @@ from abc import ABCMeta, abstractmethod
 from typing import Dict, Iterable, List, Optional
 
 
+class UpdateResult:
+    def __init__(self, *, success: bool, msg=None):
+        self.success = success
+        self.msg = msg
+
+
 class User(metaclass=ABCMeta):
     USER_PROPERTIES = (
         'user_id',
@@ -62,5 +68,5 @@ class User(metaclass=ABCMeta):
             self,
             *,
             update: Dict
-    ):
+    ) -> UpdateResult:
         pass

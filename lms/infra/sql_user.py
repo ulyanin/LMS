@@ -3,7 +3,7 @@
 from typing import Iterable, Dict, Optional, Tuple
 from abc import ABCMeta
 
-from lms.domain.user import User
+from lms.domain.user import User, UpdateResult
 import lms.infra.db.postgres_executor as pe
 
 
@@ -80,8 +80,14 @@ class SqlUser(User, metaclass=ABCMeta):
             self,
             *,
             update: Dict
-    ):
+    ) -> UpdateResult:
         assert self.authenticated
+        for key in update:
+            if key not in self.editable_properties():
+                return UpdateResult(
+                    success=False,
+                    msg=f'error: field "{key}" is not editable',
+                )
         fields = list(update.keys() & self.editable_properties())
         fields_str = ", ".join(fields)
         fields_values = tuple([update[field] for field in fields])
@@ -95,5 +101,5 @@ class SqlUser(User, metaclass=ABCMeta):
             query=query,
             params=(self.user_id,) + fields_values)
         if updated_user_id:
-            return True
-        return False
+            return UpdateResult(success=True)
+        return UpdateResult(success=False, msg='unknown error')
