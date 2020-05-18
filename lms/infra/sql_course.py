@@ -1,6 +1,8 @@
 from collections import defaultdict
 from typing import Dict, Optional, Iterable, Any, List
 
+import asyncpg
+
 from lms.domain.course import Course
 from lms.domain.course_material import CourseMaterial
 from lms.domain.assignee_task import AssigneeTask
@@ -162,3 +164,51 @@ class SqlCourse(Course):
         additional_info = await self.get_additional_info(properties)
         info.update(additional_info)
         return info
+
+    async def check_assigned(self, *, user_id) -> bool:
+        query = '''SELECT
+            student.user_id as user_id
+        FROM course
+            JOIN group_to_course gtc on course.course_id = gtc.course_id
+            JOIN student_group sg on gtc.group_name = sg.group_name
+            JOIN student on sg.group_name = student.group_name
+        WHERE course.course_id = $1 AND student.user_id = $2'''
+        resolved_user_id = await pe.fetch_val(
+            query=query,
+            params=(self.course_id, user_id)
+        )
+        return user_id and resolved_user_id == user_id
+
+    async def submit_assignee(self, *, assignee_name, student_id, solution: str) -> Dict:
+        query = '''INSERT INTO assignee_submit (assignee_name, student_id, solution)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (assignee_name, student_id) DO UPDATE
+            SET (solution, submit_time)  = (excluded.solution, excluded.submit_time)
+            RETURNING (submit_time)'''
+        try:
+            submit_time = await pe.fetch_val(
+                query=query,
+                params=(assignee_name, student_id, solution),
+            )
+        except asyncpg.exceptions.CheckViolationError:
+            return {
+                'success': False,
+                'msg': 'submission time is not in assignee interval or user is not assigned to course'
+            }
+        return {
+            'success': True,
+            'result': {
+                'submission_time': str(submit_time),
+            }
+        }
+
+    @staticmethod
+    async def resolve_assignee_course(*, assignee_name) -> Optional['Course']:
+        query = '''SELECT course_id from assignee_task where assignee_task.name = $1'''
+        course_id = await pe.fetch_val(
+            query=query,
+            params=(assignee_name,)
+        )
+        if course_id:
+            return SqlCourse(course_id=course_id)
+        return None

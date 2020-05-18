@@ -15,7 +15,8 @@ from lms.web.handlers import (
     UserClassmatesHandler,
     UserCoursesHandler,
     CourseInfoHandler,
-    CourseAssigneesHandler,
+    CourseAssigneesViewerHandler,
+    AssigneeSubmitHandler,
 )
 
 PING_URL = (r'/ping?', PingHandler)
@@ -34,8 +35,14 @@ URLS = [
     ),
     (
         r'/course/assignees/?',
-        CourseAssigneesHandler,
-        dict(user_factory=SqlUserFactory, course_class=SqlCourse)),
+        CourseAssigneesViewerHandler,
+        dict(user_factory=SqlUserFactory, course_class=SqlCourse)
+    ),
+    (
+        r'/assignee/submit/?',
+        AssigneeSubmitHandler,
+        dict(user_factory=SqlUserFactory, course_class=SqlCourse)
+    ),
     (r"(.*)", NotFoundHandler),
 ]
 LOGIN_URL = [

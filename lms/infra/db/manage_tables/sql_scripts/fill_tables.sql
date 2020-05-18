@@ -99,6 +99,8 @@ VALUES (1, 'cv_task1', '2020-01-01', '2020-07-01', 'CV task1');
 INSERT INTO assignee_task (course_id, name, start_time, end_time, description)
 VALUES (2, 'algo_task1', '2020-01-01', '2020-04-01', 'ALGO task1');
 INSERT INTO assignee_task (course_id, name, start_time, end_time, description)
+VALUES (3, 'arch_task0', '2020-05-01', '2020-10-01', 'ARCH task0');
+INSERT INTO assignee_task (course_id, name, start_time, end_time, description)
 VALUES (3, 'arch_task1', '2020-07-01', '2020-10-01', 'ARCH task1');
 
 INSERT INTO assignee_submit (assignee_name, student_id, solution)
@@ -113,17 +115,3 @@ SET (solution, submit_time)  = (excluded.solution, excluded.submit_time);
 
 INSERT INTO assignee_submit (assignee_name, student_id, solution, submit_time)
 VALUES ('algo_task1', 2, 'algo_task1_solution_user3', '2020-03-01');
-
-SELECT *
-FROM assignee_task
-JOIN course c on assignee_task.course_id = c.course_id
-JOIN group_to_course gtc on c.course_id = gtc.course_id
-JOIN student_group sg on gtc.group_name = sg.group_name
-JOIN student s on sg.group_name = s.group_name
-WHERE assignee_task.name = 'cv_task1' AND assignee_task.course_id = 1;
-
-SELECT *
-FROM assignee_task
-JOIN assignee_submit "as" on assignee_task.name = "as".assignee_name
-JOIN student on "as".student_id = student.user_id
-WHERE assignee_task.name = 'cv_task1' AND assignee_task.course_id = 1;

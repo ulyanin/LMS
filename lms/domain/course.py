@@ -83,3 +83,16 @@ class Course(metaclass=ABCMeta):
     @abstractmethod
     async def get_assignees_grouped(self, *, assignee_name) -> Dict[str, List[Any]]:
         pass
+
+    @abstractmethod
+    async def check_assigned(self, *, user_id) -> bool:
+        pass
+
+    @abstractmethod
+    async def submit_assignee(self, *, assignee_name, student_id, solution: str) -> Optional[str]:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    async def resolve_assignee_course(*, assignee_name) -> Optional['Course']:
+        pass

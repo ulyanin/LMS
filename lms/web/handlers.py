@@ -325,7 +325,7 @@ class BaseCourseHandler(AuthUserHandler):
 
     async def prepare(self):
         await super().prepare()
-        if not self.course:
+        if not self.course.course_id:
             self._bad_request(
                 msg='expected course_id GET parameter'
             )
@@ -346,24 +346,90 @@ class CourseInfoHandler(BaseCourseHandler):
         })
 
 
-class CourseAssigneesHandler(BaseCourseHandler):
+class BaseCourseAssigneeHandler(BaseCourseHandler):
     def initialize(self, user_factory, course_class):
         super().initialize(user_factory=user_factory, course_class=course_class)
         self.assignee_name = self.get_argument('assignee_name', None)
 
+    async def prepare(self):
+        await super().prepare()
+        if not self.assignee_name:
+            self._bad_request(
+                msg='expected assignee_name GET parameter'
+            )
+            return
+
+
+class BaseAssigneeHandler(AuthUserHandler):
+    def initialize(self, user_factory, course_class):
+        super().initialize(user_factory=user_factory)
+        self.course_class = course_class
+        self.assignee_name = self.get_argument('assignee_name', None)
+        self.course = None
+
+    async def prepare(self):
+        await super().prepare()
+        if not self.assignee_name:
+            self._bad_request(
+                msg='expected assignee_name GET parameter'
+            )
+            return
+        self.course = await self.course_class.resolve_assignee_course(assignee_name=self.assignee_name)
+        if not self.course:
+            self._bad_request(
+                msg='assignee_name not found',
+            )
+            return
+
+
+class AssigneeSubmitHandler(BaseAssigneeHandler):
+    async def post(self):
+        if await self.user.is_professor:
+            self._bad_request(
+                msg='only student can submit assignee',
+            )
+            return
+        if not await self.course.check_assigned(user_id=self.user_id):
+            self._bad_request(
+                msg=f'user_id={self.user_id} is not assigned to course_id={course.course_id}'
+            )
+            return
+        solution = self.body.get('solution', None)
+        if not solution:
+            self._bad_request(
+                msg='expected non empty "solution" field in body',
+            )
+            return
+        submission = await self.course.submit_assignee(
+            assignee_name=self.assignee_name,
+            solution=solution,
+            student_id=self.user_id
+        )
+        if not submission['success']:
+            self._bad_request(
+                msg=submission['msg']
+            )
+            return
+        self.write({
+            'status': 'ok',
+            'result': submission['result'],
+        })
+
+
+class CourseAssigneesViewerHandler(BaseAssigneeHandler):
     async def get(self):
         if not self.assignee_name:
             self._bad_request(
                 msg=f'GET parameter assignee_name not found'
             )
             return
-        if not self.user.is_professor:
+        if not await self.user.is_professor:
             self._bad_request(
                 msg=f'user_id {self.user_id} is not professor, forbidden'
             )
             return
         result = await self.course.get_assignees_grouped(assignee_name=self.assignee_name)
         self.write({
-            'result': 'ok',
+            'status': 'ok',
             'assignees': result,
         })
