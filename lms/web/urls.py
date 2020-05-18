@@ -15,7 +15,7 @@ from lms.web.handlers import (
     UserClassmatesHandler,
     UserCoursesHandler,
     CourseInfoHandler,
-    CourseAssigneesViewerHandler,
+    AssigneesViewerHandler,
     AssigneeSubmitHandler,
 )
 
@@ -34,8 +34,8 @@ URLS = [
         dict(user_factory=SqlUserFactory, course_class=SqlCourse)
     ),
     (
-        r'/course/assignees/?',
-        CourseAssigneesViewerHandler,
+        r'/assignee/view/?',
+        AssigneesViewerHandler,
         dict(user_factory=SqlUserFactory, course_class=SqlCourse)
     ),
     (

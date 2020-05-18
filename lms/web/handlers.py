@@ -416,7 +416,7 @@ class AssigneeSubmitHandler(BaseAssigneeHandler):
         })
 
 
-class CourseAssigneesViewerHandler(BaseAssigneeHandler):
+class AssigneesViewerHandler(BaseAssigneeHandler):
     async def get(self):
         if not self.assignee_name:
             self._bad_request(
