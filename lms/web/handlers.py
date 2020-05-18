@@ -344,3 +344,26 @@ class CourseInfoHandler(BaseCourseHandler):
             'status': 'ok',
             'info': info,
         })
+
+
+class CourseAssigneesHandler(BaseCourseHandler):
+    def initialize(self, user_factory, course_class):
+        super().initialize(user_factory=user_factory, course_class=course_class)
+        self.assignee_name = self.get_argument('assignee_name', None)
+
+    async def get(self):
+        if not self.assignee_name:
+            self._bad_request(
+                msg=f'GET parameter assignee_name not found'
+            )
+            return
+        if not self.user.is_professor:
+            self._bad_request(
+                msg=f'user_id {self.user_id} is not professor, forbidden'
+            )
+            return
+        result = await self.course.get_assignees_grouped(assignee_name=self.assignee_name)
+        self.write({
+            'result': 'ok',
+            'assignees': result,
+        })

@@ -129,7 +129,7 @@ curl "localhost:8000/user/classmates/"  -H 'Cookie: __YOUR_COOKIE__'
 }
 ```
 
-### Просмотр списка курсов (2.5)
+### Просмотр списка курсов (2.6)
 
 ```(bash)
 curl "localhost:8000/user/courses/"  -H 'Cookie: ...' -s | jq .
@@ -148,7 +148,131 @@ curl "localhost:8000/user/courses/"  -H 'Cookie: ...' -s | jq .
 }
 ```
 
+### Просмотр курса (2.7)
+```(bash)
+curl --location --request GET 'localhost:8000/course/info?course_id=1' -H 'Cookie: ...' -s | jq .
+```
+```(bash)
+{
+    "status": "ok",
+    "info": {
+        "course_id": 1,
+        "name": "CV",
+        "description": "computer vision",
+        "professors": [
+            {
+                "user_id": 6,
+                "name": "professor6",
+                "email": null
+            },
+            {
+                "user_id": 7,
+                "name": "professor7",
+                "email": null
+            }
+        ],
+        "editors": [
+            {
+                "email": null,
+                "name": "user4",
+                "user_id": 4
+            }
+        ],
+        "materials": [
+            {
+                "name": "CV_seminar1",
+                "course_id": 1,
+                "description": "jupiter_notebook from seminar1",
+                "add_time": "2020-05-17"
+            },
+            {
+                "name": "CV_seminar2",
+                "course_id": 1,
+                "description": "jupiter_notebook from seminar2",
+                "add_time": "2020-05-17"
+            }
+        ],
+        "assignees": [
+            {
+                "name": "cv_task1",
+                "course_id": [
+                    1
+                ],
+                "description": "CV task1",
+                "start_time": "2020-01-01 00:00:00",
+                "end_time": "2020-07-01 00:00:00"
+            }
+        ]
+    }
+}
+```
 
+### Управление материалами курса (2.8)
+Пока не реализовано, только напрямую через БД
+
+### Управление доверенными лицами (2.8)
+Пока не реализовано, только напрямую через БД
+
+#### §2.10. Управление домашними заданиями курса
+Пока не реализовано, только напрямую через БД
+
+#### §2.11. Загрузка решения домашнего задания
+Пока не реализовано, только напрямую через БД
+
+#### §2.12. Просмотр решений домашнего задания
+```(bash)
+curl --location --request GET 'localhost:8000/course/assignees?assignee_name=cv_task1&course_id=1' -H 'Cookie: ...' -s | jq .
+```
+```(json)
+{
+    "result": "ok",
+    "assignees": {
+        "595": [
+            {
+                "user_id": 1,
+                "group_name": "595",
+                "email": "u1@mail.ru",
+                "name": "user1",
+                "submition": {
+                    "submit_time": "2020-05-17 22:25:46.291134"
+                }
+            },
+            {
+                "user_id": 2,
+                "group_name": "595",
+                "email": null,
+                "name": "user2",
+                "submition": {
+                    "submit_time": "2020-05-18 00:00:00"
+                }
+            },
+            {
+                "user_id": 3,
+                "group_name": "595",
+                "email": "u3@mail.ru",
+                "name": "user3",
+                "submition": null
+            }
+        ],
+        "596": [
+            {
+                "user_id": 4,
+                "group_name": "596",
+                "email": null,
+                "name": "user4",
+                "submition": null
+            },
+            {
+                "user_id": 5,
+                "group_name": "596",
+                "email": null,
+                "name": "user5",
+                "submition": null
+            }
+        ]
+    }
+}
+```
 
 ## DEV
 > #### hint

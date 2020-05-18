@@ -15,13 +15,14 @@ from lms.web.handlers import (
     UserClassmatesHandler,
     UserCoursesHandler,
     CourseInfoHandler,
+    CourseAssigneesHandler,
 )
 
 PING_URL = (r'/ping?', PingHandler)
 URLS = [
     (r'/login/?', LoginHandler, dict(user_factory=SqlUserFactory)),
     (r'/register/?', RegisterHandler, dict(user_factory=SqlUserFactory)),
-    (r'/user/change_password', ChangePasswordHandler, dict(user_factory=SqlUserFactory)),
+    (r'/user/change_password/?', ChangePasswordHandler, dict(user_factory=SqlUserFactory)),
     (r'/user/id/?', GetUserIdHandler, dict(user_factory=SqlUserFactory)),
     (r'/user/info/?', UserInfoHandler, dict(user_factory=SqlUserFactory)),
     (r'/user/classmates/?', UserClassmatesHandler, dict(user_factory=SqlUserFactory)),
@@ -31,6 +32,10 @@ URLS = [
         CourseInfoHandler,
         dict(user_factory=SqlUserFactory, course_class=SqlCourse)
     ),
+    (
+        r'/course/assignees/?',
+        CourseAssigneesHandler,
+        dict(user_factory=SqlUserFactory, course_class=SqlCourse)),
     (r"(.*)", NotFoundHandler),
 ]
 LOGIN_URL = [

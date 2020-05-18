@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Dict, Optional, Iterable, Any, List
 
 from lms.domain.course import Course
@@ -82,6 +83,63 @@ class SqlCourse(Course):
             )
             assignees.append(assignee)
         return assignees
+
+    async def get_submitted_assignees(self, *, assignee_name) -> Dict[int, Any]:
+        query = '''SELECT 
+            student.user_id as user_id, 
+            "as".submit_time as submit_time,
+            "as".solution as solution
+        FROM assignee_task
+            JOIN assignee_submit "as" on assignee_task.name = "as".assignee_name
+            JOIN student on "as".student_id = student.user_id
+        WHERE assignee_task.name = $1 AND assignee_task.course_id = $2'''
+        records = await pe.fetch(
+            query=query,
+            params=(assignee_name, self.course_id)
+        )
+        submits = dict()
+        for record in records:
+            user_id = record.get('user_id')
+            submit_time = record.get('submit_time')
+            solution = record.get('solution')
+            submits[user_id] = {
+                'submit_time': str(submit_time),
+                'solution': solution,
+            }
+        return submits
+
+    async def get_assignees_grouped(self, *, assignee_name) -> Dict[str, List[Any]]:
+        query_students = '''SELECT
+            users.user_id as user_id, 
+            sg.group_name as group_name,
+            users.email as email,
+            users.name as name
+        FROM assignee_task
+            JOIN course c on assignee_task.course_id = c.course_id
+            JOIN group_to_course gtc on c.course_id = gtc.course_id
+            JOIN student_group sg on gtc.group_name = sg.group_name
+            JOIN student on sg.group_name = student.group_name
+            JOIN users on student.user_id = users.user_id
+        WHERE assignee_task.name = $1 AND assignee_task.course_id = $2'''
+        group2students = defaultdict(list)
+        records = await pe.fetch(
+            query=query_students,
+            params=(assignee_name, self.course_id)
+        )
+        submitted_assignees = await self.get_submitted_assignees(assignee_name=assignee_name)
+        for record in records:
+            user_id = record.get('user_id')
+            group_name = record.get('group_name')
+            email = record.get('email')
+            name = record.get('name')
+            group2students[group_name].append({
+                'user_id': user_id,
+                'group_name': group_name,
+                'email': email,
+                'name': name,
+                'submition': submitted_assignees.get(user_id, None),
+            })
+        return group2students
 
     async def get_info(
             self,

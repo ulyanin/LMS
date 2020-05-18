@@ -79,3 +79,7 @@ class Course(metaclass=ABCMeta):
             properties: Optional[Iterable[str]] = None
     ) -> Optional[Dict[str, Any]]:
         pass
+
+    @abstractmethod
+    async def get_assignees_grouped(self, *, assignee_name) -> Dict[str, List[Any]]:
+        pass
